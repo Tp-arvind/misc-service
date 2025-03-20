@@ -3,6 +3,8 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { WarrantyService } from './warranty.service';
 import { CreateWarrantyDto } from './dto/create-warranty.dto';
 import { UpdateWarrantyDto } from './dto/update-warranty.dto';
+import { writeFile } from 'fs/promises';
+import { join } from 'path';
 
 @Controller()
 export class WarrantyController {
@@ -73,32 +75,46 @@ export class WarrantyController {
         requestType = 'edit';
       };
       console.log(request);
-      return request;
-      const data = await this.warrantyService.dbUpdater(request, requestType, true);
-      console.log(data);
+      console.log(request.file);
 
-      if (!data) {
-        throw new HttpException(
-          { data: { status: false, message: 'No Warranty found.' } },
-          HttpStatus.NOT_FOUND
-        );
+      if (request.file) {
+        //const fileBuffer = Buffer.from(request.file.buffer, 'base64');
+        //const filePath = join(__dirname, 'uploads', request.file.originalname);
+        //console.log(fileBuffer);
+        //console.log(filePath);
+
+        // Save the file locally
+        //fs.writeFileSync(filePath, fileBuffer);
+        //console.log(`File saved: ${filePath}`);
       }
 
-      const response = {
-        data: {
-          status: true,
-          message: 'Warranty retrieved successfully',
-          warranty: Array.isArray(data) ? data : data.result,
-          ...(data.totalRecords && {
-            total_records: data.totalRecords,
-            pageno: data.currentPage,
-            total_pages: data.totalPages,
-            pageSize: data.pageSize
-          })
-        }
-      };
+      //return request;
 
-      return response;
+      // const data = await this.warrantyService.dbUpdater(request, requestType, true);
+      // console.log(data);
+
+      // if (!data) {
+      //   throw new HttpException(
+      //     { data: { status: false, message: 'No Warranty found.' } },
+      //     HttpStatus.NOT_FOUND
+      //   );
+      // }
+
+      // const response = {
+      //   data: {
+      //     status: true,
+      //     message: 'Warranty retrieved successfully',
+      //     warranty: Array.isArray(data) ? data : data.result,
+      //     ...(data.totalRecords && {
+      //       total_records: data.totalRecords,
+      //       pageno: data.currentPage,
+      //       total_pages: data.totalPages,
+      //       pageSize: data.pageSize
+      //     })
+      //   }
+      // };
+
+      // return response;
 
     } catch (error) {
       console.error("Controller Error:", error);
