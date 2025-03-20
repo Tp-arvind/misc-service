@@ -20,10 +20,11 @@ export class WarrantyController {
         'CONCAT(U.first_name, \' \', U.last_name) as user_name',
       ];
       const limit = request.limit || 10;
-      const arrConditions = {'debug': true, 'order_by': 'TWR.warranty_id DESC', 'limit': limit};
+      const arrConditions = {'debug': false, 'order_by': 'TWR.warranty_id DESC', 'limit': limit};
       const joins = ['tp_users', 'tp_tyre_dealers', 'tp_tyre_dealer_details', 'tp_location_cities'];
-
+      
       const data = await this.warrantyService.getData(conditions, '', fields, arrConditions, joins);
+      if (arrConditions['debug']) { return data;} // to print query if debug is true
 
       if (Array.isArray(data) && data.length === 0) {
         throw new HttpException(

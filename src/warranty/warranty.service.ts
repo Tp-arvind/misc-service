@@ -21,7 +21,7 @@ export class WarrantyService {
     condition: Record<string, any> = {},
     returnType: 'single' | '',
     fields: string[] = [],
-    arrayConditions: Record<string, any> = {},
+    arrConditions: Record<string, any> = {},
     joins: Record<string, any> = [],
   ): Promise<any> {
     const query = this.warrantyRepository.createQueryBuilder('TWR');
@@ -55,12 +55,12 @@ export class WarrantyService {
 
     this.applyFilters(query, condition);
   
-    if (arrayConditions['group_by']) {
-      query.groupBy(arrayConditions['group_by']);
+    if (arrConditions['group_by']) {
+      query.groupBy(arrConditions['group_by']);
     }
     
-    if (arrayConditions['order_by']) {
-      const orderByParts = arrayConditions['order_by'].split(' ');
+    if (arrConditions['order_by']) {
+      const orderByParts = arrConditions['order_by'].split(' ');
       const column = orderByParts[0].trim();
       const direction = orderByParts[1]?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'; // Default to ASC if direction is missing
       query.orderBy(`${column}`, direction);
@@ -73,21 +73,22 @@ export class WarrantyService {
     let pageNumber = 1;
     let pageSize = 10;
 
-    if (arrayConditions['limit']) {
+    if (arrConditions['limit']) {
       totalRecords = await query.getCount(); // Ensure total count before pagination
 
       if (condition.page) {
         pageNumber = Math.max(Number(condition.page), 1);
-        pageSize = Math.min(Math.max(Number(arrayConditions['limit']), 10), 100);
+        pageSize = Math.min(Math.max(Number(arrConditions['limit']), 10), 100);
         query.limit(pageSize).offset((pageNumber - 1) * pageSize);
       } else {
-        query.limit(arrayConditions['limit']);
+        query.limit(arrConditions['limit']);
       }
     }
   
     // Debugging: Log SQL if debug flag is set
-    if (arrayConditions['debug']) {
-      console.log('Generated SQL:', query.getQueryAndParameters());
+    if (arrConditions['debug']) {
+      const [queryString, queryParams] = query.getQueryAndParameters();
+      return this.formatQueryWithValues(queryString, queryParams);
     }
   
     const result = returnType === 'single' ? await query.getRawOne() : await query.getRawMany();
@@ -101,6 +102,15 @@ export class WarrantyService {
     };
   }
   
+  private formatQueryWithValues(query: string, params: any[]): string {
+    let formattedQuery = query;
+    params.forEach((param, index) => {
+      const formattedValue = typeof param === 'string' ? `'${param}'` : param;
+      formattedQuery = formattedQuery.replace(`$${index + 1}`, formattedValue);
+    });
+    // Remove double quotes to make the query clean
+    return formattedQuery.replace(/\"/g, '');
+  }
 
   private applyFilters(query: SelectQueryBuilder<Warranty>, filters: Record<string, any>) {
     Object.entries(filters).forEach(([key, value]) => {
